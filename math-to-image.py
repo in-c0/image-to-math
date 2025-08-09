@@ -8,6 +8,9 @@
 #   python math-to-image.py --analytic debug/coeffs.json --out recon.png --res 1024x1024
 #   python math-to-image.py --nn debug/nn_weights.npz --out recon_nn.png --res 1920x1080
 
+from PIL import Image
+import helper 
+
 import argparse, os, sys, json
 import numpy as np
 import matplotlib.pyplot as plt
@@ -178,6 +181,10 @@ def main():
     ap.add_argument("--nn", help="path to neural weights NPZ")
     ap.add_argument("--res", type=parse_res, default=None, help="output resolution WxH (optional)")
     ap.add_argument("--out", default="reconstructed.png")
+    ap.add_argument("--original", help="optional original image to display in viewer")
+    ap.add_argument("--no-gui", action="store_true", help="don’t open the side-by-side viewer")
+
+
     args = ap.parse_args()
 
     if not args.analytic and not args.nn:
@@ -186,12 +193,42 @@ def main():
     if args.analytic:
         img = reconstruct_from_analytic_json(args.analytic, out_res=args.res)
         save_img(img, args.out)
+        orig_arr = helper.prepare_original(args.original, args.res)
+        with open(args.analytic, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        meta = helper.AnalyticMeta(
+            img_w=(args.res[0] if args.res else data["img_w"]),
+            img_h=(args.res[1] if args.res else data["img_h"]),
+            tile=data.get("tile"), overlap=data.get("overlap"),
+            basis_names=data.get("basis_names")
+        )
+        helper.show_triptych(
+            orig_arr, img, meta,
+            mid_title="Analytic reconstruction",
+            no_gui=args.no_gui
+        )
+
+
 
     if args.nn:
         # If both given, append suffix
         out = args.out if not args.analytic else os.path.splitext(args.out)[0] + "_nn.png"
         img = reconstruct_from_nn_npz(args.nn, out_res=args.res)
         save_img(img, out)
+        orig_arr = helper.prepare_original(args.original, args.res)
+        Z = np.load(args.nn, allow_pickle=True)
+        meta = helper.NNMeta(
+            bands=int(Z["bands"][0]),
+            din=int(Z["din"][0]) if "din" in Z else None,
+            dh=int(Z["dh"][0]) if "dh" in Z else None
+        )
+        helper.show_triptych(
+            orig_arr, img, meta,
+            mid_title="Neural reconstruction",
+            no_gui=args.no_gui
+        )
+
+
 
 if __name__ == "__main__":
     main()

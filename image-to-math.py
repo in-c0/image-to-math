@@ -15,6 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image, ImageOps, ImageDraw
 from tqdm import tqdm
+import helper
 
 # --------------------------
 # Common helpers
@@ -427,6 +428,20 @@ def main():
 
         save_img(arr, "Original", os.path.join(os.path.dirname(args.out) or ".", "original.png"), args.no_gui)
         save_img(recon, "Analytic (poly+trig tiled)", args.out, args.no_gui)
+        # --- Side-by-side viewer (Original | Analytic Recon | Formula) ---
+        # note: for analytic, coeffs is available when you requested any export
+        # if not, we still pass sizes/tile/overlap so the formula shows meaningful metadata.
+        meta = helper.AnalyticMeta(
+            img_w=arr.shape[1], img_h=arr.shape[0],
+            tile=TILE, overlap=OVERLAP,
+            basis_names=(coeffs["basis_names"] if coeffs and "basis_names" in coeffs else None)
+        )
+        helper.show_triptych(
+            arr, recon, meta,
+            mid_title="Analytic (poly+trig tiled)",
+            no_gui=args.no_gui
+        )
+
         print(f"Saved {args.out}")
         ran_any = True
 
@@ -473,6 +488,16 @@ def main():
         )
         print(f"Neural finished in {time.time()-t0:.1f}s")
         save_img(recon_nn, "Neural implicit (full-res render)", args.out_nn, args.no_gui)
+        meta = helper.NNMeta(
+            bands=args.nn_bands,
+            din=mlp_state.get("din"), dh=mlp_state.get("dh")
+        )
+        helper.show_triptych(
+            arr, recon_nn, meta,
+            mid_title="Neural implicit (full-res render)",
+            no_gui=args.no_gui
+        )
+
         print(f"Saved {args.out_nn}")
 
         # Export weights/meta
