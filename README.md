@@ -4,7 +4,7 @@ This is Stage 1 of (*Link).
 
 Run image-to-math.py to convert an image into a mathematical description; using a sum of low-order polynomials and sinusoids on tiled patches, then reconstructing it back from that math.
 
-
+<img width="1622" height="612" alt="image" src="https://github.com/user-attachments/assets/d84eb1b9-7967-4fa4-90fd-1a33540c5ebb" />
 
 ## Installation
 
