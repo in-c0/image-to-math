@@ -62,13 +62,14 @@ def prepare_original(path, res=None):
 # ---------- Formula formatting (single dispatch) ----------
 
 def _format_analytic_formula(meta: AnalyticMeta) -> str:
+    # Use only mathtext-supported commands (no \dfrac, no \text{})
     M = len(meta.basis_names) if (meta.basis_names is not None) else "M"
-    lines = [
-        r"$\hat I^{(c)}(x,y)=\dfrac{\sum_k w_k(x,y)\,\sum_{j=1}^{%s} a^{(c)}_{k,j}\,\phi_j(u_k(x),v_k(y))}{\sum_k w_k(x,y)}$" % M,
+    return "\n".join([
+        r"$\hat I^{(c)}(x,y)=\frac{\sum_k w_k(x,y)\,\sum_{j=1}^{%s} a^{(c)}_{k,j}\,\phi_j(u_k(x),v_k(y))}{\sum_k w_k(x,y)}$" % M,
         r"$u_k(x)=\frac{2(x-x_k)}{w_k-1}-1,\quad v_k(y)=\frac{2(y-y_k)}{h_k-1}-1$",
-        f"Image: H={meta.img_h}, W={meta.img_w}; tile t={meta.tile}, overlap α={meta.overlap}."
-    ]
-    return "\n".join(lines)
+        # keep this entire line in math to avoid wrapping/glitches and use \alpha
+        rf"$H={meta.img_h},\ W={meta.img_w};\ t={meta.tile},\ \alpha={meta.overlap}$",
+    ])
 
 def _format_nn_formula(meta: NNMeta) -> str:
     header = f"MLP: din={meta.din}, dh={meta.dh}, dout=3" if (meta.din or meta.dh) else None
@@ -113,7 +114,8 @@ def show_triptych(original_arr, recon_arr, meta, *, mid_title="Reconstruction", 
     axes[2].axis("off")
     wrapped = []
     for line in formula_text.split("\n"):
-        if line.strip().startswith("$") and line.strip().endswith("$"):
+        # If the line contains any math, don't rewrap it—let mathtext handle it.
+        if "$" in line:
             wrapped.append(line)
         else:
             wrapped.append(textwrap.fill(line, width=54))
