@@ -235,6 +235,9 @@ def write_latex_global(coeffs, out_path, expand=False):
         r"Let $w_k(x,y)$ be a separable Hann window on $T_k$; we normalize by $\sum_k w_k(x,y)$.",
         r"Let $\{\phi_j\}_{j=1}^M$ be the analytic basis over $(u,v)\in[-1,1]^2$.",
         r"The final reconstructed image (per channel $c\in\{R,G,B\}$) is:",
+        r"\paragraph{Mathtext-friendly:}",
+        r"\[ \hat I^{(c)}(x,y) = \frac{\sum_k w_k(x,y)\,\sum_{j=1}^M a^{(c)}_{k,j}\,\phi_j(u_k(x),v_k(y))}{\sum_k w_k(x,y)} \]",        
+        r"\paragraph{Full LaTeX:}"
         r"\[ \hat I^{(c)}(x,y) \;=\; \frac{\displaystyle \sum_{k} w_k(x,y)\;\sum_{j=1}^M a^{(c)}_{k,j}\,\phi_j\!\big(u_k(x),v_k(y)\big)}{\displaystyle \sum_{k} w_k(x,y)}\,. \]",
     ]
     if not expand:
