@@ -5,8 +5,9 @@ from dataclasses import dataclass
 from typing import Optional, Sequence
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+mpl.rcParams.update({"text.usetex": False})
 import textwrap
-
 # ---------- Meta types ----------
 
 @dataclass
@@ -61,15 +62,20 @@ def prepare_original(path, res=None):
 
 # ---------- Formula formatting (single dispatch) ----------
 
+mpl.rcParams.update({
+    "text.usetex": False,          # force mathtext (no external LaTeX)
+    "mathtext.default": "regular", # simpler glyphs
+})
+
 def _format_analytic_formula(meta: AnalyticMeta) -> str:
-    # Use only mathtext-supported commands (no \dfrac, no \text{})
     M = len(meta.basis_names) if (meta.basis_names is not None) else "M"
-    return "\n".join([
-        r"$\hat I^{(c)}(x,y)=\frac{\sum_k w_k(x,y)\,\sum_{j=1}^{%s} a^{(c)}_{k,j}\,\phi_j(u_k(x),v_k(y))}{\sum_k w_k(x,y)}$" % M,
-        r"$u_k(x)=\frac{2(x-x_k)}{w_k-1}-1,\quad v_k(y)=\frac{2(y-y_k)}{h_k-1}-1$",
-        # keep this entire line in math to avoid wrapping/glitches and use \alpha
-        rf"$H={meta.img_h},\ W={meta.img_w};\ t={meta.tile},\ \alpha={meta.overlap}$",
-    ])
+    line1 = (
+        r"$\hat I^{(c)}(x,y)=\frac{\sum_k w_k(x,y)\sum_{j=1}^{%s}"
+        r" a^{(c)}_{k,j}\phi_j(u_k(x),v_k(y))}{\sum_k w_k(x,y)}$" % M
+    )
+    line2 = r"$u_k(x)=\frac{2(x-x_k)}{w_k-1}-1,\quad v_k(y)=\frac{2(y-y_k)}{h_k-1}-1$"
+    line3 = rf"$H={meta.img_h},\ W={meta.img_w};\ t={meta.tile},\ \alpha={meta.overlap}$"
+    return "\n".join([line1, line2, line3])
 
 def _format_nn_formula(meta: NNMeta) -> str:
     header = f"MLP: din={meta.din}, dh={meta.dh}, dout=3" if (meta.din or meta.dh) else None
@@ -121,8 +127,10 @@ def show_triptych(original_arr, recon_arr, meta, *, mid_title="Reconstruction", 
             wrapped.append(textwrap.fill(line, width=54))
     axes[2].text(
         0.02, 0.98, "\n".join(wrapped),
-        va="top", ha="left", transform=axes[2].transAxes, wrap=True,
-        bbox=dict(boxstyle="round,pad=0.4", fc="w", ec="0.85")
+        va="top", ha="left", transform=axes[2].transAxes,
+        wrap=False,                     #  don't set to True, it breaks $...$
+        fontsize=11,
+        bbox=dict(boxstyle="round,pad=0.4", fc="w", ec="0.85"),
     )
     axes[2].set_title("Formula")
 
