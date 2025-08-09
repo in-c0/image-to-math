@@ -1,1 +1,6 @@
 *.pyc
+
+debug/*
+
+original.png
+reconstruction_tiled.png
